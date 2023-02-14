@@ -1,0 +1,15 @@
+#%RAML 1.0 ResourceType
+
+get:
+  displayName: Fetch Country Detail
+  description: This method is used to fetch country details from First Org API
+  queryParameters:
+    code:
+      type: string
+      description: country code specific to country
+  responses:
+    200:
+      body:
+        application/json:
+          example: !include ../examples/getCountryExample.json
+            

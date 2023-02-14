@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="8187828c-b773-474b-8af4-d174130b2415" >
+		<http:request-connection protocol="HTTPS" host="${countries.host}" responseBufferSize="${http.response-buffer-size}" maxConnections="${http.max-connections}" connectionIdleTimeout="${http.connection-idle-time}"/>
+	</http:request-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="eada91f6-597b-44d4-bf1d-6f944b397b17" file="properties/${mule.env}-properties.yaml" />
+	<api-gateway:autodiscovery apiId="${api.id}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="6bf31435-86ae-451a-a98a-9d770254b3ad" flowRef="first-country-lookup-sapi-main" />
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="f333e35e-2fd3-4d49-9fb3-e3c63d4a2640" >
+		<http:listener-connection host="0.0.0.0" port="${http.port}" />
+	</http:listener-config>
+	<error-handler name="globalError_Handler" doc:id="a6a5898e-0022-454b-b154-a11372753f28" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="95181b19-3d04-4823-be23-066a547f8d1d" >
+			<ee:transform doc:name="DW Prepare Error Message" doc:id="293d2776-35d7-42f7-8798-fb04ddb9d907" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"returnCode": 500,
+	"returnCodeDescription": error.muleMessage.payload.returnCodeDescription default error.description,
+	"status": "ERROR",
+	"correlationId": attributes.headers.correlationId
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<logger level="INFO" doc:name="LOG Error" doc:id="2dd657b0-795e-46c5-a3f0-ede88a4a0f18" message='#[payload]'/>
+		</on-error-propagate>
+	</error-handler>
+</mule>

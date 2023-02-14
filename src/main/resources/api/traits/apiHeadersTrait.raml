@@ -1,0 +1,18 @@
+#%RAML 1.0 Trait
+
+  headers:
+    client_id:
+      description: client id required to authenticate api
+      type: string
+    client_secret:
+      description: client secret required to authenticate api
+      type: string
+    correlationid:
+      type: string
+      description: Correlation ID used for tracking the API  
+  responses:
+    401:
+      description: Unauthorized or invalid client application credentials
+    500:
+      description: Bad response from authorization server, or WSDL SOAP Fault error
+

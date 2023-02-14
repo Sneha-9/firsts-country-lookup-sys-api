@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="implementation-test-suite.xml" />
+	<munit:test name="get-country-details-success-testcase" doc:id="8ce7e0a8-8746-436c-8917-edf4d001a0d2" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="2c103b0a-0c9e-4f53-9927-889bd487eb7d" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="0e8e2e12-0f47-4481-af32-05d07936abd4" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://country/countrydetails.dwl')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="2f9590f3-b1a0-42d0-8e58-fb22c629636c" >
+				<munit:attributes value="#[{&quot;headers&quot;:{&quot;correlationId&quot;: &quot;123&quot;},queryParams : {'code' :'IN'}}]" />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to get-countries-flow" doc:id="95a08455-be5d-4a50-9d76-10825a76681f" name="get-countries-flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="Verify call" doc:id="452f6674-b019-466b-a2a9-a5642a0f8b5f" processor="logger">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c256f1a5-8e86-43f3-80f8-2a9862469412" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="get-country-details-error-testcase" doc:id="bc9954d0-1c37-42d7-bfd3-4cac303c43d9" description="Test" expectedErrorType="MULE:RETRY_EXHAUSTED">
+			<munit:behavior>
+				<munit-tools:mock-when doc:name="Mock when" doc:id="2fc2877d-6b8a-4c1f-86a9-ca196266a127" processor="http:request">
+					<munit-tools:with-attributes>
+						<munit-tools:with-attribute whereValue="0e8e2e12-0f47-4481-af32-05d07936abd4" attributeName="doc:id" />
+					</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/json --- readUrl('classpath://country/countrydetails.dwl')]" mediaType="application/json" />
+					<munit-tools:error typeId="MULE:RETRY_EXHAUSTED" />
+				</munit-tools:then-return>
+				</munit-tools:mock-when>
+			</munit:behavior>
+			<munit:execution>
+				<munit:set-event doc:name="Set Event" doc:id="5c8abde7-4192-44a1-9619-ef499820cabd">
+					<munit:attributes value="#[{&quot;headers&quot;:{&quot;correlationId&quot;: &quot;123&quot;},queryParams : {'code' :'IN'}}]" />
+				</munit:set-event>
+				<flow-ref doc:name="Flow-ref to get-countries-flow" doc:id="9f7dec86-78ce-4c71-8a52-221636577ec9" name="get-countries-flow" />
+			</munit:execution>
+			<munit:validation>
+				<munit-tools:verify-call doc:name="Verify call" doc:id="a3eaeee2-2448-49e5-aa14-bbe6f3de94d9" processor="logger">
+					<munit-tools:with-attributes>
+						<munit-tools:with-attribute whereValue="c256f1a5-8e86-43f3-80f8-2a9862469412" attributeName="doc:id" />
+					</munit-tools:with-attributes>
+				</munit-tools:verify-call>
+			</munit:validation>
+		</munit:test>
+
+
+</mule>

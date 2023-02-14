@@ -1,0 +1,20 @@
+#%RAML 1.0
+title: First Country Lookup System API
+version: v1
+
+traits:
+  errorReponsesTrait: !include /traits/errorResponsesTrait.raml
+  client-id-required: !include /traits/apiHeadersTrait.raml
+
+resourceTypes:
+  countryDetails :  !include /resourceTypes/getCountryDetailsResourceType.raml
+
+
+/getcountries:
+  displayName: Fetch Countries
+  description: This resource is used to fetch country details based on country code
+  is: [errorReponsesTrait , client-id-required]
+  type: countryDetails
+
+    
+   

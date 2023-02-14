@@ -1,0 +1,17 @@
+api:
+ path: "/api/v1/*"
+ id: "18488372"
+
+http:
+ response-buffer-size: "1024"
+ connection-idle-time : "30000"
+ max-connections: "-1"
+ port: "8081"
+
+untilsuccessful:
+ maxretries: "3"
+ time: "60000"
+
+countries:
+ host: "api.first.org"
+ path: "/data/v1/countries"

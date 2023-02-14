@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="get-countries-flow" doc:id="65415f56-2ec7-409c-a75e-b859b7143e90" >
+		<set-variable value="#[attributes.headers.correlationId]" doc:name="correlationId" doc:id="8aaba655-386f-49db-83c6-6c610fd9ac1b" variableName="correlationId" />
+		<logger level="INFO" doc:name="LOG Start Call To Fetch Country Details" doc:id="7fcd2aa8-882f-4166-92d1-5a3539293624" message='#["Call started to fetch country details  " ++ (vars.correlationId default "")]'/>
+		<set-variable value="#[attributes.queryParams.code]" doc:name="countryCode" doc:id="8a46931c-de53-419d-bbf9-9f55087baef1" variableName="code" />
+		<ee:cache doc:name="Cache" doc:id="147dd132-f5bc-45dd-aa6d-cda3e29fa37b" >
+			<until-successful maxRetries="${untilsuccessful.maxretries}" doc:name="Retry Until Status is Executing " doc:id="5a241d38-c913-48b2-a081-d8827675f8ac" millisBetweenRetries="${untilsuccessful.time}">
+				<http:request method="GET" doc:name="GET/: Call To Fetch Country Details" doc:id="0e8e2e12-0f47-4481-af32-05d07936abd4" config-ref="HTTP_Request_configuration" path="${countries.path}" />
+			</until-successful>
+		</ee:cache>
+		<ee:transform doc:name="DW Prepare Country Details Based on CountryCode" doc:id="4092670d-ac6b-4bb5-aa7d-449d24f315d4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.data filterObject ((value, key, index) -> key ~= vars.code)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="LOG End Call To Fetch Country Details" doc:id="c256f1a5-8e86-43f3-80f8-2a9862469412" message='#["Call Ends to Fetch Country Details  " ++ (vars.correlationId default "")]'/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="034e32f1-b030-4285-9853-c0dcb2a91686" type="MULE:RETRY_EXHAUSTED">
+				<ee:transform doc:name="DW Prepare Error Message" doc:id="8e5a2188-d614-479e-9563-d6dee2b7e150" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"returnCode": 500,
+	"returnCodeDescription": error.muleMessage.payload.returnCodeDescription default error.description,
+	"status": "ERROR",
+	"correlationId": attributes.headers.correlationId
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="httpStatus" ><![CDATA[error.muleMessage.typedAttributes.statusCode default 500]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="ERROR" doc:name="LOG Error " doc:id="a33f5b89-aeff-42ea-910f-54f083b97dbc" message='#["Error occurred while fetching country details in system api " ++ (vars.correlationId default "")]'/>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>
